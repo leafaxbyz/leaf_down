@@ -1,9 +1,27 @@
+use crate::parser::book;
 use scraper::{Html, Selector};
 use std::error::Error;
 use std::fmt;
 use std::fmt::{Debug, Display};
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
+
+pub async fn parse() {
+    let parse_rule = ParseRule {
+        host: "https://www.xzmncy.com".to_string(),
+        book_url: "https://www.xzmncy.com/list/35830/".to_string(),
+        catalog_selector: "#list a".to_string(),
+        chapter_selector: "#htmlContent p".to_string(),
+    };
+
+    match book::parse_book(parse_rule).await {
+        Ok(_) => {}
+        Err(err) => {
+            println!("解析书籍错误,{}", err)
+        }
+    }
+}
+
 pub async fn parse_book(parse_rule: ParseRule) -> Result<(), Box<dyn Error>> {
     let url = &parse_rule.book_url;
     // let host = "https://www.xzmncy.com";
@@ -49,7 +67,10 @@ fn parse_catalog(html: &str, parse_rule: &ParseRule) -> Result<Vec<Catalog>, Box
     Ok(catalogs)
 }
 
-async fn parse_character(catalog: Catalog, parse_rule: &ParseRule) -> Result<Chapter, Box<dyn Error>> {
+async fn parse_character(
+    catalog: Catalog,
+    parse_rule: &ParseRule,
+) -> Result<Chapter, Box<dyn Error>> {
     println!("章节url={}", catalog.url);
     let resp = reqwest::get(catalog.url).await?;
     let resp_body = resp.text().await?;
@@ -67,12 +88,12 @@ async fn parse_character(catalog: Catalog, parse_rule: &ParseRule) -> Result<Cha
                 content,
             };
             Ok(chapter)
-        },
-        Err(err) => Err(Box::new(MyError{description: err.to_string()}))
+        }
+        Err(err) => Err(Box::new(MyError {
+            description: err.to_string(),
+        })),
     }
-
 }
-
 
 // 保持数据到文件
 fn save_data(chapter: &Chapter, writer: &mut BufWriter<File>) -> Result<(), Box<dyn Error>> {
@@ -100,10 +121,10 @@ struct Chapter {
 // 解析规则
 #[derive(Debug)]
 pub struct ParseRule {
-    pub host: String,  // 域名
-    pub book_url: String,  // 书籍地址
-    pub catalog_selector: String,  // 目录选择器
-    pub chapter_selector: String,  // 章节选择器
+    pub host: String,             // 域名
+    pub book_url: String,         // 书籍地址
+    pub catalog_selector: String, // 目录选择器
+    pub chapter_selector: String, // 章节选择器
 }
 
 #[derive(Debug)]
@@ -123,6 +144,3 @@ impl fmt::Display for MyError {
         write!(f, "{}", self.description)
     }
 }
-
-
-
