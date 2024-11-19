@@ -1,4 +1,4 @@
-use booksearch::parser::book::parse;
+use booksearch::searcher::book::parse;
 
 #[test]
 fn test() {

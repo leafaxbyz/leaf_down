@@ -1,4 +1,4 @@
-use crate::parser::book;
+use crate::searcher::res_config::{read_res, ResConfig};
 use scraper::{Html, Selector};
 use std::error::Error;
 use std::fmt;
@@ -6,23 +6,16 @@ use std::fmt::{Debug, Display};
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
 
-pub async fn parse() {
-    let parse_rule = ParseRule {
-        host: "https://www.xzmncy.com".to_string(),
-        book_url: "https://www.xzmncy.com/list/35830/".to_string(),
-        catalog_selector: "#list a".to_string(),
-        chapter_selector: "#htmlContent p".to_string(),
-    };
+pub async fn parse() -> Result<(), Box<dyn Error>> {
+    let res_config = read_res()?;
 
-    match book::parse_book(parse_rule).await {
-        Ok(_) => {}
-        Err(err) => {
-            println!("解析书籍错误,{}", err)
-        }
+    match parse_book(res_config).await {
+        Ok(_) => Ok(()),
+        Err(err) => Err(err),
     }
 }
 
-pub async fn parse_book(parse_rule: ParseRule) -> Result<(), Box<dyn Error>> {
+pub async fn parse_book(parse_rule: ResConfig) -> Result<(), Box<dyn Error>> {
     let url = &parse_rule.book_url;
     // let host = "https://www.xzmncy.com";
     // let index_path = "/list/35830/";
@@ -46,7 +39,7 @@ pub async fn parse_book(parse_rule: ParseRule) -> Result<(), Box<dyn Error>> {
 }
 
 // 解析目录
-fn parse_catalog(html: &str, parse_rule: &ParseRule) -> Result<Vec<Catalog>, Box<dyn Error>> {
+fn parse_catalog(html: &str, parse_rule: &ResConfig) -> Result<Vec<Catalog>, Box<dyn Error>> {
     let document = Html::parse_document(html);
     let catalog_selector = Selector::parse(parse_rule.catalog_selector.as_str()).unwrap();
 
@@ -69,7 +62,7 @@ fn parse_catalog(html: &str, parse_rule: &ParseRule) -> Result<Vec<Catalog>, Box
 
 async fn parse_character(
     catalog: Catalog,
-    parse_rule: &ParseRule,
+    parse_rule: &ResConfig,
 ) -> Result<Chapter, Box<dyn Error>> {
     println!("章节url={}", catalog.url);
     let resp = reqwest::get(catalog.url).await?;
@@ -118,28 +111,19 @@ struct Chapter {
     content: String, // 内容
 }
 
-// 解析规则
-#[derive(Debug)]
-pub struct ParseRule {
-    pub host: String,             // 域名
-    pub book_url: String,         // 书籍地址
-    pub catalog_selector: String, // 目录选择器
-    pub chapter_selector: String, // 章节选择器
-}
-
 #[derive(Debug)]
 pub struct MyError {
     description: String,
 }
 
 // 实现 std::error::Error 和 std::fmt::Display trait
-impl std::error::Error for MyError {
+impl Error for MyError {
     fn description(&self) -> &str {
         &self.description
     }
 }
 
-impl fmt::Display for MyError {
+impl Display for MyError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.description)
     }

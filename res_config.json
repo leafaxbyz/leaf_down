@@ -1,0 +1,6 @@
+{
+  "host": "https://www.xzmncy.com",
+  "book_url": "https://www.xzmncy.com/list/35830/",
+  "catalog_selector": "#list a",
+  "chapter_selector": "#htmlContent p"
+}
