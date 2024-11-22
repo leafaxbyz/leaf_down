@@ -1,4 +1,5 @@
 use crate::searcher::res_config::{read_res, ResConfig};
+use log::{info};
 use scraper::{Html, Selector};
 use std::error::Error;
 use std::fmt;
@@ -8,6 +9,7 @@ use std::io::{BufWriter, Write};
 
 pub async fn parse() -> Result<(), Box<dyn Error>> {
     let res_config = read_res()?;
+    info!("读取配置文件成功  {:?}", res_config);
 
     match parse_book(res_config).await {
         Ok(_) => Ok(()),
@@ -33,7 +35,7 @@ pub async fn parse_book(parse_rule: ResConfig) -> Result<(), Box<dyn Error>> {
     for catalog in catalogs {
         let chapter = parse_character(catalog, &parse_rule).await?;
         save_data(&chapter, &mut writer)?;
-        println!("{} 已完成", chapter.title);
+        info!("章节名=[{}] 已完成下载", chapter.title);
     }
     Ok(())
 }
@@ -56,7 +58,7 @@ fn parse_catalog(html: &str, parse_rule: &ResConfig) -> Result<Vec<Catalog>, Box
         };
         catalogs.push(catalog)
     }
-    println!("章节数量={}", catalogs.len());
+    info!("章节数量={}", catalogs.len());
     Ok(catalogs)
 }
 
@@ -64,7 +66,7 @@ async fn parse_character(
     catalog: Catalog,
     parse_rule: &ResConfig,
 ) -> Result<Chapter, Box<dyn Error>> {
-    println!("章节url={}", catalog.url);
+    info!("章节url={}", catalog.url);
     let resp = reqwest::get(catalog.url).await?;
     let resp_body = resp.text().await?;
     let document = Html::parse_document(&resp_body);
