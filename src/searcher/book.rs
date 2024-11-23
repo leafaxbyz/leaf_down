@@ -6,13 +6,19 @@ use std::fmt;
 use std::fmt::{Debug, Display};
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
+use std::time::Instant;
 
-pub async fn parse() -> Result<(), Box<dyn Error>> {
+// 下载书籍
+pub async fn download() -> Result<(), Box<dyn Error>> {
     let res_config = read_res()?;
     info!("读取配置文件成功  {:?}", res_config);
 
+    let start = Instant::now();
     match parse_book(res_config).await {
-        Ok(_) => Ok(()),
+        Ok(_) => {
+            let elapsed = Instant::now().duration_since(start);
+            info!("下载完成, 共耗时{}秒", elapsed.as_secs());
+            Ok(()) },
         Err(err) => {
             error!("parse book err{:?}", err);
             Err(err)
@@ -24,11 +30,8 @@ pub async fn parse() -> Result<(), Box<dyn Error>> {
 pub async fn parse_book(res_config: ResConfig) -> Result<(), Box<dyn Error>> {
     let url = &res_config.book_url;
     let res_body = reqwest::get(url).await?.text().await?;
-    let name_selector = Selector::parse(res_config.name_selector.as_str()).unwrap();
-    let path = match Html::parse_document(&res_body).select(&name_selector).next() {
-        Some(e) => e.text().collect::<Vec<_>>().join("") + ".txt",
-        None => "book.txt".to_string(),
-    };
+
+    let path = parse_name(&res_body, &res_config)?;
     let catalogs = parse_catalog(&res_body, &res_config)?;
     let file = OpenOptions::new()
         .write(true)
@@ -44,6 +47,14 @@ pub async fn parse_book(res_config: ResConfig) -> Result<(), Box<dyn Error>> {
         info!("章节名=[{}] 已完成下载", chapter.title);
     }
     Ok(())
+}
+
+fn parse_name(html: &str, res_config: &ResConfig) -> Result<String, Box<dyn Error>> {
+    let name_selector = Selector::parse(res_config.name_selector.as_str()).unwrap();
+    let path = match Html::parse_document(&html).select(&name_selector).next() {
+        Some(e) => e.text().collect::<Vec<_>>().join("") + ".txt",
+        None => "book.txt".to_string(),
+    };
 }
 
 // 解析目录

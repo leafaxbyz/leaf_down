@@ -1,6 +1,6 @@
-use booksearch::searcher::book::parse;
+use booksearch::searcher::book::download;
 
 #[test]
 fn test() {
-    parse()
+    download()
 }
