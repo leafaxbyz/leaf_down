@@ -1,7 +1,7 @@
+use log::info;
 use serde::{Deserialize, Serialize};
 use std::io::Read;
 use std::{env, fs};
-use log::info;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ResConfig {
@@ -9,6 +9,7 @@ pub struct ResConfig {
     pub book_url: String,
     pub catalog_selector: String,
     pub chapter_selector: String,
+    pub name_selector: String,
 }
 
 pub fn read_res() -> Result<ResConfig, Box<dyn std::error::Error>> {

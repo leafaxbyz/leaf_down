@@ -16,15 +16,20 @@ pub async fn parse() -> Result<(), Box<dyn Error>> {
         Err(err) => {
             error!("parse book err{:?}", err);
             Err(err)
-        },
+        }
     }
 }
 
-pub async fn parse_book(parse_rule: ResConfig) -> Result<(), Box<dyn Error>> {
-    let url = &parse_rule.book_url;
+// 解析并下载书籍
+pub async fn parse_book(res_config: ResConfig) -> Result<(), Box<dyn Error>> {
+    let url = &res_config.book_url;
     let res_body = reqwest::get(url).await?.text().await?;
-    let catalogs = parse_catalog(&res_body, &parse_rule)?;
-    let path = "book.txt";
+    let name_selector = Selector::parse(res_config.name_selector.as_str()).unwrap();
+    let path = match Html::parse_document(&res_body).select(&name_selector).next() {
+        Some(e) => e.text().collect::<Vec<_>>().join("") + ".txt",
+        None => "book.txt".to_string(),
+    };
+    let catalogs = parse_catalog(&res_body, &res_config)?;
     let file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -34,7 +39,7 @@ pub async fn parse_book(parse_rule: ResConfig) -> Result<(), Box<dyn Error>> {
     let mut writer = BufWriter::new(file);
     // 保存每一个章节
     for catalog in catalogs {
-        let chapter = parse_character(catalog, &parse_rule).await?;
+        let chapter = parse_character(catalog, &res_config).await?;
         save_data(&chapter, &mut writer)?;
         info!("章节名=[{}] 已完成下载", chapter.title);
     }
