@@ -1,5 +1,5 @@
 use crate::searcher::res_config::{read_res, ResConfig};
-use log::{info};
+use log::{error, info};
 use scraper::{Html, Selector};
 use std::error::Error;
 use std::fmt;
@@ -13,15 +13,15 @@ pub async fn parse() -> Result<(), Box<dyn Error>> {
 
     match parse_book(res_config).await {
         Ok(_) => Ok(()),
-        Err(err) => Err(err),
+        Err(err) => {
+            error!("parse book err{:?}", err);
+            Err(err)
+        },
     }
 }
 
 pub async fn parse_book(parse_rule: ResConfig) -> Result<(), Box<dyn Error>> {
     let url = &parse_rule.book_url;
-    // let host = "https://www.xzmncy.com";
-    // let index_path = "/list/35830/";
-    // let url = host.to_string() + index_path;
     let res_body = reqwest::get(url).await?.text().await?;
     let catalogs = parse_catalog(&res_body, &parse_rule)?;
     let path = "book.txt";
@@ -32,6 +32,7 @@ pub async fn parse_book(parse_rule: ResConfig) -> Result<(), Box<dyn Error>> {
         .open(path)?;
 
     let mut writer = BufWriter::new(file);
+    // 保存每一个章节
     for catalog in catalogs {
         let chapter = parse_character(catalog, &parse_rule).await?;
         save_data(&chapter, &mut writer)?;
@@ -41,9 +42,9 @@ pub async fn parse_book(parse_rule: ResConfig) -> Result<(), Box<dyn Error>> {
 }
 
 // 解析目录
-fn parse_catalog(html: &str, parse_rule: &ResConfig) -> Result<Vec<Catalog>, Box<dyn Error>> {
+fn parse_catalog(html: &str, res_config: &ResConfig) -> Result<Vec<Catalog>, Box<dyn Error>> {
     let document = Html::parse_document(html);
-    let catalog_selector = Selector::parse(parse_rule.catalog_selector.as_str()).unwrap();
+    let catalog_selector = Selector::parse(res_config.catalog_selector.as_str()).unwrap();
 
     let mut catalogs: Vec<Catalog> = Vec::new();
 
@@ -53,8 +54,7 @@ fn parse_catalog(html: &str, parse_rule: &ResConfig) -> Result<Vec<Catalog>, Box
 
         let catalog = Catalog {
             title,
-            url: parse_rule.host.to_string() + path,
-            // selector: parse_rule.chapter_selector.to_string(),
+            url: res_config.host.to_string() + path,
         };
         catalogs.push(catalog)
     }
@@ -62,15 +62,16 @@ fn parse_catalog(html: &str, parse_rule: &ResConfig) -> Result<Vec<Catalog>, Box
     Ok(catalogs)
 }
 
+// 解析章节
 async fn parse_character(
     catalog: Catalog,
-    parse_rule: &ResConfig,
+    res_config: &ResConfig,
 ) -> Result<Chapter, Box<dyn Error>> {
     info!("章节url={}", catalog.url);
     let resp = reqwest::get(catalog.url).await?;
     let resp_body = resp.text().await?;
     let document = Html::parse_document(&resp_body);
-    match Selector::parse(parse_rule.chapter_selector.as_str()) {
+    match Selector::parse(res_config.chapter_selector.as_str()) {
         Ok(value) => {
             let elements = document.select(&value);
             let mut content = String::from("");

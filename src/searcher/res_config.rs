@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::io::Read;
 use std::{env, fs};
+use log::info;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ResConfig {
@@ -11,10 +12,10 @@ pub struct ResConfig {
 }
 
 pub fn read_res() -> Result<ResConfig, Box<dyn std::error::Error>> {
-    // 假设你有一个包含JSON数据的文件
+    // 配置文件目录
     let file_path = "res_config.json";
     let cwd = env::current_dir()?;
-    println!("Current working directory: {:?}", cwd);
+    info!("Current working directory: {:?}", cwd);
 
     // 从文件中读取数据
     let mut file = fs::File::open(file_path)?;
