@@ -32,6 +32,7 @@ pub async fn parse_book(res_config: ResConfig) -> Result<(), Box<dyn Error>> {
     let res_body = reqwest::get(url).await?.text().await?;
 
     let path = parse_name(&res_body, &res_config)?;
+    info!("已获取到书籍名称={}", path);
     let catalogs = parse_catalog(&res_body, &res_config)?;
     let file = OpenOptions::new()
         .write(true)
@@ -52,10 +53,10 @@ pub async fn parse_book(res_config: ResConfig) -> Result<(), Box<dyn Error>> {
 fn parse_name(html: &str, res_config: &ResConfig) -> Result<String, Box<dyn Error>> {
     let name_selector = Selector::parse(res_config.name_selector.as_str()).unwrap();
     let path = match Html::parse_document(&html).select(&name_selector).next() {
-        Some(e) => e.text().collect::<Vec<_>>().join("") + ".txt",
+        Some(e) => (e.text().collect::<Vec<_>>().join("") + ".txt").to_string(),
         None => "book.txt".to_string(),
     };
-    Ok(path.to_string())
+    Ok(path)
 }
 
 // 解析目录
