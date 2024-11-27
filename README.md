@@ -9,14 +9,13 @@ rust
 
 #### 安装教程
 
-1.  git clone 
+1.  git clone https://gitee.com/axbyz/book_searcher.git
 2.  cargo run
-3.  xxxx
 
 #### 使用说明
 
 1.  编辑配置文件
-2.  xxxx
+2.  cargo run
 3.  xxxx
 
 #### 参与贡献
