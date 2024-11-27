@@ -111,7 +111,7 @@ async fn parse_character(
 
 // 保持数据到文件
 fn save_data(chapter: &Chapter, writer: &mut BufWriter<File>) -> Result<(), Box<dyn Error>> {
-    let write_content = format!("\n {} \n {}", chapter.title, chapter.content);
+    let write_content = format!("\n \n{} \n {}", chapter.title, chapter.content);
     writer.write_all(write_content.as_bytes())?;
     writer.flush()?;
     Ok(())
