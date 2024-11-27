@@ -55,6 +55,7 @@ fn parse_name(html: &str, res_config: &ResConfig) -> Result<String, Box<dyn Erro
         Some(e) => e.text().collect::<Vec<_>>().join("") + ".txt",
         None => "book.txt".to_string(),
     };
+    Ok(path.to_string())
 }
 
 // 解析目录
