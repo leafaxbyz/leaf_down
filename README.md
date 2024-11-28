@@ -10,7 +10,6 @@ rust
 #### 安装教程
 
 1.  git clone https://gitee.com/axbyz/book_searcher.git
-2.  cargo run
 
 #### 使用说明
 
@@ -25,4 +24,4 @@ rust
 4.  新建 Pull Request
 
 
-#### 特技
+#### 补充说明

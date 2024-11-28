@@ -6,7 +6,8 @@ use std::fmt;
 use std::fmt::{Debug, Display};
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
-use std::time::Instant;
+use std::time::{Duration, Instant};
+use reqwest::Client;
 
 // 下载书籍
 pub async fn download() -> Result<(), Box<dyn Error>> {
@@ -18,7 +19,8 @@ pub async fn download() -> Result<(), Box<dyn Error>> {
         Ok(_) => {
             let elapsed = Instant::now().duration_since(start);
             info!("下载完成, 共耗时{}秒", elapsed.as_secs());
-            Ok(()) },
+            Ok(())
+        }
         Err(err) => {
             error!("parse book err{:?}", err);
             Err(err)
@@ -29,7 +31,10 @@ pub async fn download() -> Result<(), Box<dyn Error>> {
 // 解析并下载书籍
 pub async fn parse_book(res_config: ResConfig) -> Result<(), Box<dyn Error>> {
     let url = &res_config.book_url;
-    let res_body = reqwest::get(url).await?.text().await?;
+    let client = Client::builder()
+        .timeout(Duration::from_secs(10)) // 设置超时时间为5秒
+        .build()?;
+    let res_body = client.get(url).send().await?.text().await?;
 
     let path = parse_name(&res_body, &res_config)?;
     info!("已获取到书籍名称={}", path);
@@ -43,7 +48,7 @@ pub async fn parse_book(res_config: ResConfig) -> Result<(), Box<dyn Error>> {
     let mut writer = BufWriter::new(file);
     // 保存每一个章节
     for catalog in catalogs {
-        let chapter = parse_character(catalog, &res_config).await?;
+        let chapter = parse_character(catalog, &res_config, &client).await?;
         save_data(&chapter, &mut writer)?;
         info!("章节名=[{}] 已完成下载", chapter.title);
     }
@@ -84,9 +89,10 @@ fn parse_catalog(html: &str, res_config: &ResConfig) -> Result<Vec<Catalog>, Box
 async fn parse_character(
     catalog: Catalog,
     res_config: &ResConfig,
+    client: &Client,
 ) -> Result<Chapter, Box<dyn Error>> {
     info!("章节url={}", catalog.url);
-    let resp = reqwest::get(catalog.url).await?;
+    let resp = client.get(catalog.url).send().await?;
     let resp_body = resp.text().await?;
     let document = Html::parse_document(&resp_body);
     match Selector::parse(res_config.chapter_selector.as_str()) {
