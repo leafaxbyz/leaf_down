@@ -10,6 +10,7 @@ pub struct ResConfig {
     pub catalog_selector: String,
     pub chapter_selector: String,
     pub name_selector: String,
+    pub save_dir: String,
 }
 
 pub fn read_res() -> Result<ResConfig, Box<dyn std::error::Error>> {

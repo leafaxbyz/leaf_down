@@ -15,7 +15,8 @@ rust
 
 1.  编辑配置文件, 参考[res_config.json](res_config.json) 
 2.  cargo run
-
+3. ![img.png](docs/finish.png)
+4. ![img.png](docs/tsxk.png)
 #### 参与贡献
 
 1.  Fork 本仓库
@@ -23,5 +24,6 @@ rust
 3.  提交代码
 4.  新建 Pull Request
 
-
-#### 补充说明
+#### 待完成功能
+1. 断点续传
+2. 多线程下载

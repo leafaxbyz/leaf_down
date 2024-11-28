@@ -2,7 +2,7 @@ use crate::searcher::res_config::{read_res, ResConfig};
 use log::{error, info};
 use scraper::{Html, Selector};
 use std::error::Error;
-use std::fmt;
+use std::{fmt, fs};
 use std::fmt::{Debug, Display};
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
@@ -36,14 +36,18 @@ pub async fn parse_book(res_config: ResConfig) -> Result<(), Box<dyn Error>> {
         .build()?;
     let res_body = client.get(url).send().await?.text().await?;
 
-    let path = parse_name(&res_body, &res_config)?;
-    info!("已获取到书籍名称={}", path);
+    fs::create_dir_all(&res_config.save_dir)?;
+
+    let book_name = parse_name(&res_body, &res_config)?;
+    info!("已获取到书籍名称={}", book_name);
+    let full_path = format!("{}/{}", &res_config.save_dir, book_name);
+
     let catalogs = parse_catalog(&res_body, &res_config)?;
     let file = OpenOptions::new()
         .write(true)
         .create(true)
         .truncate(true)
-        .open(path)?;
+        .open(full_path)?;
 
     let mut writer = BufWriter::new(file);
     // 保存每一个章节
@@ -57,11 +61,11 @@ pub async fn parse_book(res_config: ResConfig) -> Result<(), Box<dyn Error>> {
 
 fn parse_name(html: &str, res_config: &ResConfig) -> Result<String, Box<dyn Error>> {
     let name_selector = Selector::parse(res_config.name_selector.as_str()).unwrap();
-    let path = match Html::parse_document(&html).select(&name_selector).next() {
+    let book_name = match Html::parse_document(&html).select(&name_selector).next() {
         Some(e) => (e.text().collect::<Vec<_>>().join("") + ".txt").to_string(),
         None => "book.txt".to_string(),
     };
-    Ok(path)
+    Ok(book_name)
 }
 
 // 解析目录
