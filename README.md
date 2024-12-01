@@ -10,7 +10,7 @@ rust
 
 #### 安装教程
 
-1.  git clone https://github.com/q1045243113/leaf_down.git
+1.  git clone https://github.com/leafaxbyz/leaf_down.git
 
 #### 使用说明
 
