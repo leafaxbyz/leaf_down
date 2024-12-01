@@ -42,21 +42,29 @@ pub async fn parse_book(res_config: ResConfig) -> Result<(), Box<dyn Error>> {
     info!("已获取到书籍名称={}", book_name);
     let full_path = format!("{}/{}", &res_config.save_dir, book_name);
 
-    let catalogs = parse_catalog(&res_body, &res_config)?;
-    let file = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open(full_path)?;
+    match parse_catalog(&res_body, &res_config) {
+        Ok(catalogs) => {
+            let file = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(full_path)?;
 
-    let mut writer = BufWriter::new(file);
-    // 保存每一个章节
-    for catalog in catalogs {
-        let chapter = parse_character(catalog, &res_config, &client).await?;
-        save_data(&chapter, &mut writer)?;
-        info!("章节名=[{}] 已完成下载", chapter.title);
+            let mut writer = BufWriter::new(file);
+            // 保存每一个章节
+            for catalog in catalogs {
+                let chapter = parse_character(catalog, &res_config, &client).await?;
+                save_data(&chapter, &mut writer)?;
+                info!("章节名=[{}] 已完成下载", chapter.title);
+            }
+            Ok(())
+        }
+        Err(e) => {
+            error!("解析章节错误{:?}", res_config);
+            Err(e)
+        }
     }
-    Ok(())
+
 }
 
 fn parse_name(html: &str, res_config: &ResConfig) -> Result<String, Box<dyn Error>> {
@@ -77,7 +85,7 @@ fn parse_catalog(html: &str, res_config: &ResConfig) -> Result<Vec<Catalog>, Box
 
     for element in document.select(&catalog_selector) {
         let title = element.text().collect::<Vec<_>>().join("");
-        let path = element.attr("href").unwrap_or_else(|| "");
+        let path = element.attr("href").unwrap();
 
         let catalog = Catalog {
             title,
