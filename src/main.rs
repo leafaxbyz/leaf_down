@@ -1,5 +1,5 @@
-use booksearch::searcher::book::download;
-use booksearch::searcher::log_init;
+use leaf_down::loader::book::download;
+use leaf_down::loader::log_init;
 
 #[tokio::main]
 async fn main() {

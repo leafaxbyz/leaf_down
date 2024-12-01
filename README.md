@@ -1,4 +1,4 @@
-# book_searcher
+# leaf_down
 
 #### 介绍
 使用RUST实现的书籍下载器
@@ -20,10 +20,6 @@ rust
 4. ![img.png](docs/tsxk.png)
 #### 参与贡献
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
 
 #### 待完成功能
 1. 断点续传

@@ -1,4 +1,4 @@
-use crate::searcher::res_config::{read_res, ResConfig};
+use crate::loader::res_config::{read_res, ResConfig};
 use log::{error, info};
 use scraper::{Html, Selector};
 use std::error::Error;
