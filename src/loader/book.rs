@@ -89,7 +89,7 @@ fn parse_catalog(html: &str, res_config: &ResConfig) -> Result<Vec<Catalog>, Box
     Ok(catalogs)
 }
 
-// 解析章节
+// 解析每个章节
 async fn parse_character(
     catalog: Catalog,
     res_config: &ResConfig,
