@@ -1,4 +1,6 @@
-use flexi_logger::{colored_opt_format, Cleanup, Criterion, Duplicate, FileSpec, Logger, Naming, WriteMode};
+use flexi_logger::{
+    colored_opt_format, Cleanup, Criterion, Duplicate, FileSpec, Logger, Naming, WriteMode,
+};
 
 pub mod book;
 mod res_config;

@@ -1,13 +1,13 @@
 use crate::loader::res_config::{read_res, ResConfig};
 use log::{error, info};
+use reqwest::Client;
 use scraper::{Html, Selector};
 use std::error::Error;
-use std::{fmt, fs};
 use std::fmt::{Debug, Display};
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
 use std::time::{Duration, Instant};
-use reqwest::Client;
+use std::{fmt, fs};
 
 // 下载书籍
 pub async fn download() -> Result<(), Box<dyn Error>> {
@@ -36,37 +36,19 @@ pub async fn parse_book(res_config: ResConfig) -> Result<(), Box<dyn Error>> {
         .build()?;
     let res_body = client.get(url).send().await?.text().await?;
 
-    fs::create_dir_all(&res_config.save_dir)?;
-
     let book_name = parse_name(&res_body, &res_config)?;
     info!("已获取到书籍名称={}", book_name);
     let full_path = format!("{}/{}", &res_config.save_dir, book_name);
-
     match parse_catalog(&res_body, &res_config) {
-        Ok(catalogs) => {
-            let file = OpenOptions::new()
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open(full_path)?;
-
-            let mut writer = BufWriter::new(file);
-            // 保存每一个章节
-            for catalog in catalogs {
-                let chapter = parse_character(catalog, &res_config, &client).await?;
-                save_data(&chapter, &mut writer)?;
-                info!("章节名=[{}] 已完成下载", chapter.title);
-            }
-            Ok(())
-        }
+        Ok(catalogs) => down_catalogs(&res_config, &full_path, catalogs, &client).await,
         Err(e) => {
             error!("解析章节错误{:?}", res_config);
             Err(e)
         }
     }
-
 }
 
+// 获取书籍名称
 fn parse_name(html: &str, res_config: &ResConfig) -> Result<String, Box<dyn Error>> {
     let name_selector = Selector::parse(res_config.name_selector.as_str()).unwrap();
     let book_name = match Html::parse_document(&html).select(&name_selector).next() {
@@ -95,6 +77,30 @@ fn parse_catalog(html: &str, res_config: &ResConfig) -> Result<Vec<Catalog>, Box
     }
     info!("章节数量={}", catalogs.len());
     Ok(catalogs)
+}
+
+// 下载左右章节
+async fn down_catalogs(
+    res_config: &ResConfig,
+    full_path: &str,
+    catalogs: Vec<Catalog>,
+    client: &Client,
+) -> Result<(), Box<dyn Error>> {
+    fs::create_dir_all(&res_config.save_dir)?;
+    let file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(full_path)?;
+
+    let mut writer = BufWriter::new(file);
+    // 保存每一个章节
+    for catalog in catalogs {
+        let chapter = parse_character(catalog, &res_config, &client).await?;
+        save_data(&chapter, &mut writer)?;
+        info!("章节名=[{}] 已完成下载", chapter.title);
+    }
+    Ok(())
 }
 
 // 解析每个章节
