@@ -26,18 +26,18 @@ pub fn read_res() -> Result<ResConfig, CustomError> {
 
     // 从文件中读取数据
     let mut file = fs::File::open(file_path).map_err(|e| {
-        error!("Can not open file: {}", file_path);
+        error!("open file err: {}, file_path= {}", e, file_path);
         CustomError::ConfigReadErr(e)
     })?;
     let mut contents = String::new();
     file.read_to_string(&mut contents).map_err(|e| {
-        error!("Can not read file: {}", file_path);
+        error!("read file err: {}, file_path = {}", e, file_path);
         CustomError::ConfigReadErr(e)
     })?;
 
     // 将字符串解析为Person结构体
     let config = serde_json::from_str(&contents).map_err(|e| {
-        error!("parse config err: {}", file_path);
+        error!("parse config err: {}, file_path = {}",e,  file_path);
         CustomError::ConfigParseErr(e)
     })?;
     Ok(config)
