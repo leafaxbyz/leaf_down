@@ -1,13 +1,14 @@
+use crate::loader::err::CustomError;
 use crate::loader::res_config::{read_res, ResConfig};
 use log::{error, info};
 use reqwest::Client;
 use scraper::{Html, Selector};
 use std::error::Error;
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
 use std::time::{Duration, Instant};
-use std::{fmt, fs};
+use std::{ fs};
 
 // 下载书籍
 pub async fn download() -> Result<(), Box<dyn Error>> {
@@ -127,9 +128,7 @@ async fn parse_character(
             };
             Ok(chapter)
         }
-        Err(err) => Err(Box::new(MyError {
-            description: err.to_string(),
-        })),
+        Err(err) => Err(Box::new(CustomError::Err(err.to_string()))),
     }
 }
 
@@ -154,22 +153,4 @@ struct Catalog {
 struct Chapter {
     title: String,   // 标题
     content: String, // 内容
-}
-
-#[derive(Debug)]
-pub struct MyError {
-    description: String,
-}
-
-// 实现 std::error::Error 和 std::fmt::Display trait
-impl Error for MyError {
-    fn description(&self) -> &str {
-        &self.description
-    }
-}
-
-impl Display for MyError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.description)
-    }
 }

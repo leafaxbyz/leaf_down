@@ -3,6 +3,7 @@ use flexi_logger::{
 };
 
 pub mod book;
+mod err;
 mod res_config;
 
 pub fn log_init() {
