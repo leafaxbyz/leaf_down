@@ -5,13 +5,13 @@ use reqwest::Client;
 use scraper::{Html, Selector};
 use std::error::Error;
 use std::fmt::Debug;
+use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
 use std::time::{Duration, Instant};
-use std::{ fs};
 
 // 下载书籍
-pub async fn download() -> Result<(), Box<dyn Error>> {
+pub async fn download() -> Result<(), CustomError> {
     let res_config = read_res()?;
     info!("读取配置文件成功  {:?}", res_config);
 
@@ -30,23 +30,45 @@ pub async fn download() -> Result<(), Box<dyn Error>> {
 }
 
 // 解析并下载书籍
-pub async fn parse_book(res_config: ResConfig) -> Result<(), Box<dyn Error>> {
+pub async fn parse_book(res_config: ResConfig) -> Result<(), CustomError> {
     let url = &res_config.book_url;
     let client = Client::builder()
         .timeout(Duration::from_secs(10)) // 设置超时时间为5秒
-        .build()?;
-    let res_body = client.get(url).send().await?.text().await?;
+        .build()
+        .map_err(|err| {
+            error!("构建客户端错误{:?}", err);
+            CustomError::RequestError(err)
+        })?;
+    let res = client.get(url).send().await.map_err(|err| {
+        error!("request err {:?}", err);
+        CustomError::RequestError(err)
+    })?;
+    let res_body = res.text().await.map_err(|err| {
+        error!("response to text err {:?}", err);
+        CustomError::RequestError(err)
+    })?;
 
-    let book_name = parse_name(&res_body, &res_config)?;
+    let book_name = parse_name(&res_body, &res_config).map_err(|err| {
+        error!("parse name err {:?}", err);
+        CustomError::Err(err.to_string())
+    })?;
     info!("已获取到书籍名称={}", book_name);
     let full_path = format!("{}/{}", &res_config.save_dir, book_name);
-    match parse_catalog(&res_body, &res_config) {
-        Ok(catalogs) => down_catalogs(&res_config, &full_path, catalogs, &client).await,
-        Err(e) => {
-            error!("解析章节错误{:?}", res_config);
-            Err(e)
-        }
-    }
+
+    // 解析所有章节
+    let catalogs = parse_catalog(&res_body, &res_config).map_err(|err| {
+        error!("parse catalog err {:?}", err);
+        CustomError::Err(err.to_string())
+    })?;
+
+    // 下载所有章节
+    let result = down_catalogs(&res_config, &full_path, catalogs, &client)
+        .await
+        .map_err(|err| {
+            error!("down_catalogs err {:?}", err);
+            CustomError::Err(err.to_string())
+        })?;
+    Ok(result)
 }
 
 // 获取书籍名称

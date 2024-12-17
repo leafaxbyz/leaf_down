@@ -37,7 +37,7 @@ pub fn read_res() -> Result<ResConfig, CustomError> {
 
     // 将字符串解析为Person结构体
     let config = serde_json::from_str(&contents).map_err(|e| {
-        error!("parse config err: {}, file_path = {}",e,  file_path);
+        error!("parse config err: {}, file_path = {}", e, file_path);
         CustomError::ConfigParseErr(e)
     })?;
     Ok(config)

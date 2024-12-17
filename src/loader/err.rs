@@ -5,6 +5,7 @@ use std::{fmt, io};
 #[derive(Debug)]
 pub enum CustomError {
     Err(String),
+    RequestError(reqwest::Error),
     ConfigReadErr(io::Error),
     ConfigParseErr(serde_json::error::Error),
 }
@@ -15,6 +16,7 @@ impl Display for CustomError {
             CustomError::Err(config) => write!(f, "File not found: {}", config),
             CustomError::ConfigReadErr(e) => write!(f, "IO error: {}", e),
             CustomError::ConfigParseErr(e) => write!(f, "Parse error: {}", e),
+            CustomError::RequestError(e) => write!(f, "Request error: {}", e),
         }
     }
 }

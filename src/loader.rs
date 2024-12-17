@@ -3,8 +3,8 @@ use flexi_logger::{
 };
 
 pub mod book;
-mod err;
-mod res_config;
+pub mod err;
+pub mod res_config;
 
 pub fn log_init() {
     // 创建一个配置构建器
