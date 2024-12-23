@@ -1,0 +1,8 @@
+{
+  "host": "https://www.wcxsw.la",
+  "book_url": "https://www.wcxsw.la/book/364638/",
+  "catalog_selector": "#list dl > dd a",
+  "chapter_selector": "#content",
+  "name_selector": ".booktitle h1",
+  "save_dir": "books"
+}
