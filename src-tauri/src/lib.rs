@@ -11,7 +11,7 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 async fn down_book() {
-    download().await.expect("TODO: panic message");
+    download().await.expect("下载错误");
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
