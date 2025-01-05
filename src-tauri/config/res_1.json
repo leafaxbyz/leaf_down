@@ -1,0 +1,8 @@
+{
+  "host": "https://www.xzmncy.com",
+  "book_url": "https://www.xzmncy.com/list/537/",
+  "catalog_selector": "#list a",
+  "chapter_selector": "#htmlContent p",
+  "name_selector": ".infobar h1",
+  "save_dir": "books"
+}

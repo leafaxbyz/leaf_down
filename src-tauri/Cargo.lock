@@ -2056,6 +2056,7 @@ version = "0.1.0"
 dependencies = [
  "flexi_logger",
  "log",
+ "regex",
  "reqwest",
  "scraper",
  "serde",

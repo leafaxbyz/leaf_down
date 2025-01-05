@@ -1,11 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 
-
-
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use log::info;
 use leaf_down_lib::loader::init::log_init;
+use log::info;
 
 fn main() {
     log_init();

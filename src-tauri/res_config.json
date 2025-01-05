@@ -1,8 +1,10 @@
 {
-  "host": "https://www.xzmncy.com",
-  "book_url": "https://www.xzmncy.com/list/537/",
-  "catalog_selector": "#list a",
-  "chapter_selector": "#htmlContent p",
-  "name_selector": ".infobar h1",
+  "host": "https://www.wcxsw.la",
+  "search_url": "https://www.wcxsw.la/home/search?action=search&q={book_name}",
+  "link_selector": "#hotcontent .lll .item-cover a",
+  "book_url": "https://www.wcxsw.la/book/364638/",
+  "catalog_selector": "#list dl > dd a",
+  "chapter_selector": "#content",
+  "name_selector": ".booktitle h1",
   "save_dir": "books"
 }

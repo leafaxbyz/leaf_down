@@ -1,4 +1,5 @@
-pub mod init;
 pub mod book;
-pub mod res_config;
 pub mod err;
+pub mod init;
+pub mod res_config;
+pub mod search;

@@ -29,3 +29,4 @@ serde = { version = "1.0.210", features = ["derive"] }
 flexi_logger = "0.29.6"
 log = { version = "0.4.22", features = [] }
 url = "2.5.4"
+regex = "1.11.1"
