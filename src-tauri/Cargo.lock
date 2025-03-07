@@ -2056,6 +2056,7 @@ version = "0.1.0"
 dependencies = [
  "flexi_logger",
  "log",
+ "regex",
  "reqwest",
  "scraper",
  "serde",
@@ -2065,7 +2066,7 @@ dependencies = [
  "tauri-plugin-opener",
  "tauri-plugin-shell",
  "tokio",
- "toml 0.8.19",
+ "url",
 ]
 
 [[package]]

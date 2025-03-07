@@ -1,3 +1,4 @@
+use crate::loader::err::CustomError::ConfigReadErr;
 use std::error::Error;
 use std::fmt::{Debug, Display};
 use std::{fmt, io};
@@ -9,7 +10,6 @@ pub enum CustomError {
     ConfigReadErr(io::Error),
     ConfigParseErr(serde_json::error::Error),
 }
-
 impl Display for CustomError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -18,6 +18,18 @@ impl Display for CustomError {
             CustomError::ConfigParseErr(e) => write!(f, "Parse error: {}", e),
             CustomError::RequestError(e) => write!(f, "Request error: {}", e),
         }
+    }
+}
+
+impl From<reqwest::Error> for CustomError {
+    fn from(value: reqwest::Error) -> Self {
+        CustomError::RequestError(value)
+    }
+}
+
+impl From<io::Error> for CustomError {
+    fn from(value: io::Error) -> Self {
+        ConfigReadErr(value)
     }
 }
 

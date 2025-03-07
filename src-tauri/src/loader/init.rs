@@ -2,6 +2,7 @@ use flexi_logger::{
     colored_opt_format, Cleanup, Criterion, Duplicate, FileSpec, Logger, Naming, WriteMode,
 };
 
+// 初始化日志
 pub fn log_init() {
     // 创建一个配置构建器
     // 初始化日志记录，配置输出到文件，设置文件大小限制和滚动日志
