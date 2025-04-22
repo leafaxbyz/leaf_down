@@ -6,14 +6,14 @@ use std::{env, fs};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ResConfig {
-    pub host: String,
-    pub search_url: String,
+    pub host: String,       // 域名
+    pub search_url: String, // 搜索
     pub link_selector: String,
-    pub book_url: String,
-    pub catalog_selector: String,
-    pub chapter_selector: String,
-    pub name_selector: String,
-    pub save_dir: String,
+    pub book_url: String,         // 书籍地址
+    pub catalog_selector: String, // 目录选择器
+    pub chapter_selector: String, // 章节选择器
+    pub name_selector: String,    // 名称选择器
+    pub save_dir: String,         // 保持路径
 }
 
 // 书籍
@@ -25,7 +25,7 @@ pub struct BookLink {
 
 pub fn read_res() -> Result<ResConfig, CustomError> {
     // 配置文件目录
-    let file_path = "res_2.json";
+    let file_path = "res_config.json";
 
     let cwd = env::current_dir().map_err(|e| {
         error!("Can not access current working directory: {}", e);

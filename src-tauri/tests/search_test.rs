@@ -17,7 +17,8 @@ async fn test_search() {
         name_selector: "".to_string(),
         save_dir: "".to_string(),
     };
-    let links = search_books(vec![config], "诛仙".to_string()).await.unwrap();
+    let links = search_books(vec![config], "诛仙".to_string())
+        .await
+        .unwrap();
     println!("{:?}", links);
-
 }

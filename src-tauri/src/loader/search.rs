@@ -26,7 +26,7 @@ pub fn parse_link(config: ResConfig, content: &str) -> Result<Vec<BookLink>, Cus
     match Selector::parse(config.link_selector.as_str()) {
         Ok(selector) => {
             let document = Html::parse_document(content);
-            let  elements = document.select(&selector);
+            let elements = document.select(&selector);
             // let mut content = String::from("");
             let mut links: Vec<BookLink> = Vec::new();
             for element in elements {

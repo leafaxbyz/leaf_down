@@ -16,6 +16,7 @@ pub async fn download() -> Result<(), CustomError> {
     info!("读取配置文件成功  {:?}", res_config);
 
     let start = Instant::now();
+    // 解析配置文件,并下载
     match parse_book(res_config).await {
         Ok(_) => {
             let elapsed = Instant::now().duration_since(start);
@@ -48,11 +49,13 @@ pub async fn parse_book(res_config: ResConfig) -> Result<(), CustomError> {
         CustomError::RequestError(err)
     })?;
 
+    // 获取书籍名称
     let book_name = parse_name(&res_body, &res_config).map_err(|err| {
         error!("parse name err {:?}", err);
         CustomError::Err(err.to_string())
     })?;
     info!("已获取到书籍名称={}", book_name);
+    // 获取书籍具体地址
     let full_path = format!("{}/{}", &res_config.save_dir, book_name);
 
     // 解析所有章节
@@ -84,6 +87,7 @@ fn parse_name(html: &str, res_config: &ResConfig) -> Result<String, Box<dyn Erro
 // 解析目录
 fn parse_catalog(html: &str, res_config: &ResConfig) -> Result<Vec<Catalog>, Box<dyn Error>> {
     let document = Html::parse_document(html);
+    // 目录选择器
     let catalog_selector = Selector::parse(res_config.catalog_selector.as_str()).unwrap();
 
     let mut catalogs: Vec<Catalog> = Vec::new();
@@ -119,9 +123,27 @@ async fn down_catalogs(
     let mut writer = BufWriter::new(file);
     // 保存每一个章节
     for catalog in catalogs {
-        let chapter = parse_character(catalog, &res_config, &client).await?;
-        save_data(&chapter, &mut writer)?;
-        info!("章节名=[{}] 已完成下载", chapter.title);
+        let chapter = parse_character(catalog, &res_config, &client)
+            .await
+            .map_err(|err| {
+                error!("parse catalog err {:?}", err);
+            });
+        if let Ok(value) = chapter {
+            // 成功处理
+            save_data(&value, &mut writer)?;
+        }
+
+        //         info!("章节名=[{}] 已完成下载", value.title);
+
+        // let chapter = match parse_character(catalog, &res_config, &client).await {
+        //     Ok(value) => {
+        //         save_data(&value, &mut writer)?;
+        //         info!("章节名=[{}] 已完成下载", value.title);
+        //     }
+        //     Err(err) => {
+        //         error!("parse catalog err {:?}", err);
+        //     }
+        // };
     }
     Ok(())
 }
