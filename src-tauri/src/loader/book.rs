@@ -123,39 +123,36 @@ async fn down_catalogs(
     let mut writer = BufWriter::new(file);
     // 保存每一个章节
     for catalog in catalogs {
-        let chapter = parse_character(catalog, &res_config, &client)
-            .await
-            .map_err(|err| {
-                error!("parse catalog err {:?}", err);
-            });
-        if let Ok(value) = chapter {
-            // 成功处理
-            save_data(&value, &mut writer)?;
-        }
-
-        //         info!("章节名=[{}] 已完成下载", value.title);
-
-        // let chapter = match parse_character(catalog, &res_config, &client).await {
-        //     Ok(value) => {
-        //         save_data(&value, &mut writer)?;
-        //         info!("章节名=[{}] 已完成下载", value.title);
-        //     }
-        //     Err(err) => {
+        // let chapter = parse_character(catalog, &res_config, &client)
+        //     .await
+        //     .map_err(|err| {
         //         error!("parse catalog err {:?}", err);
-        //     }
-        // };
+        //     });
+        // if let Ok(value) = chapter {
+        //     // 成功处理
+        //     save_data(&value, &mut writer)?;
+        // }
+        let chapter = parse_character(&catalog, &res_config, &client).await;
+        match &chapter {
+            Ok(value) => {
+                save_data(value, &mut writer)?;
+            }
+            Err(err) => {
+                error!("parse catalog err {:?}, catalog {:?}", err, catalog);
+            }
+        }
     }
     Ok(())
 }
 
 // 解析每个章节
 async fn parse_character(
-    catalog: Catalog,
+    catalog: &Catalog,
     res_config: &ResConfig,
     client: &Client,
 ) -> Result<Chapter, Box<dyn Error>> {
     info!("章节url={}", catalog.url);
-    let resp = client.get(catalog.url).send().await?;
+    let resp = client.get(&catalog.url).send().await?;
     let resp_body = resp.text().await?;
     let document = Html::parse_document(&resp_body);
     match Selector::parse(res_config.chapter_selector.as_str()) {
@@ -167,7 +164,7 @@ async fn parse_character(
                 content = format!("{} \n {}", content, p_content);
             }
             let chapter = Chapter {
-                title: catalog.title,
+                title: catalog.title.to_string(),
                 content,
             };
             Ok(chapter)
